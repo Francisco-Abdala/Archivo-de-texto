@@ -1,0 +1,105 @@
+use std::fs;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
+use std::fs::OpenOptions;
+
+
+fn open_file_to_append(p: &Path) -> File{
+
+    let mut binding = OpenOptions::new();
+    let binding = binding.append(true);
+    let file = match binding.open(p){
+        Err(_why) => panic!("No se puede abrir el archivo"),
+        Ok(file) => file,
+    };
+
+    return file
+
+}
+
+
+fn create_blank_file(p: &Path){
+    let _file = File::create(p).expect("El archivo no pudo crearse");
+    println!("El archivo fue creado");
+
+}
+
+
+fn open_file_to_read(p: &Path){
+    if Path::new(p).exists(){
+        let _file = match File::open(&p){
+            Err(_why) => panic!("El archivo no se puede abrir..."),
+            Ok(file) => file,
+        };
+        println!("El archivo se creó anteriormente, se agregará el contenido");
+    } else {
+        create_blank_file(p);
+    }
+}
+
+
+fn add_new_content(mut f: &File, texto : &String){
+
+    f.write_all(texto.as_bytes()).ok();
+    
+}
+
+
+fn main(){
+    let str = fs::read_to_string("notas.txt").expect("No se pudo leer el archivo.");
+    let mut matriz_archivo:[[&str;7];4] = [["";7];4];
+    let mut linea = 0;
+    for x in str.split("\n"){
+        let mut contador = 0;
+        
+        for y in x.split(":"){
+            
+            if contador < 7{
+                matriz_archivo[linea][contador] = y.trim()
+            }
+            contador += 1;
+        }
+
+        linea += 1;
+       
+    }
+    
+    let mut resultado = String::from("");
+    println!("{}", resultado);
+    let mut guardar = String::from("");
+    
+    for i in 0..4{
+        let mut promedio:f32 = 0.0;
+
+        for j in 1..7{
+            let a = matriz_archivo[i][j];
+            promedio += a.parse::<f32>().unwrap();
+
+        }
+
+        promedio = promedio/6 as f32;
+        
+        if promedio>= 4.0{
+            let nombre = String::from(matriz_archivo[i][0]);
+            let espacio = String::from(" ");
+            let aprobado = String::from("aprobó.\n");
+            resultado = nombre + &espacio + &aprobado;
+            
+        }else{
+            let nombre = String::from (matriz_archivo[i][0]);
+            let espacio = String::from(" ");
+            let reprobado = String::from("reprobó.\n");
+            resultado = nombre + &espacio + &reprobado;
+ 
+        }
+        guardar += &resultado;
+        
+    }
+    let texto = &guardar;
+    let path = Path::new("reporte de notas.txt");
+    open_file_to_read(path);
+    let file = open_file_to_append(path);
+    add_new_content(&file, texto);
+    
+}
