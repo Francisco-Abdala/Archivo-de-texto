@@ -1,0 +1,180 @@
+use std::io::stdin;
+use arrayvec::ArrayVec;
+use std::fs::File;
+use std::path::Path;
+use std::io::Read;
+use std::fs::OpenOptions;
+use std::io::Write;
+
+
+
+#[derive(Default)]
+struct Persona{
+    nombre: String,
+    edad: u8,
+    rut: String,
+    mascota: ArrayVec::<[Mascota; 5]>
+}
+
+#[derive(Default)]
+#[derive(Debug)]
+struct Mascota{
+    nombre: String,
+    tipo: String,
+    color: String,
+}
+
+fn nombre_mascota() -> String{
+    println!("Introduza el nombre de la mascota");
+    let mut nombre_animal_fn = String::new();
+    stdin().read_line(&mut nombre_animal_fn).unwrap().to_string();
+    return nombre_animal_fn;
+}
+
+fn tipo_mascota()-> String{
+    println!("Introduzca el tipo de mascota");
+    let mut tipo_animal_fn = String::new();
+    stdin().read_line(&mut tipo_animal_fn).unwrap().to_string();
+    return tipo_animal_fn;
+}
+
+fn color_mascota() -> String{
+    println!("Introduzca el color de la mascota");
+    let mut color_animal_fn = String::new();
+    stdin().read_line(&mut color_animal_fn).unwrap().to_string();
+    return color_animal_fn;
+}
+
+fn animal() -> ArrayVec::<[Mascota; 5]>{
+    let mut contador = 0;
+    let mut array = ArrayVec::<[Mascota; 5]>::new();
+    let mut _animalito = Mascota{
+        nombre: "".to_string(),
+        tipo: "".to_string(),
+        color: "".to_string(),
+    };
+    loop{
+        let nombre_loop = nombre_mascota();
+        let tipo_loop = tipo_mascota();
+        let color_loop = color_mascota();
+        let mut _animalito =  Mascota{
+                                    nombre: nombre_loop,
+                                    tipo: tipo_loop,
+                                    color: color_loop,
+        };
+
+        contador +=1;
+        if contador == 1{
+            array.insert(contador-1, _animalito);
+            println!("Datos de la primera mascota introducidos correctamente");
+            println!("{:?}",array[contador-1]);
+        }
+        if contador == 2{
+            array.insert(contador-1,_animalito);
+            println!(" Datos de la segunda mascota introducidos correctamente");
+            println!(" {:?} ",array[contador-1]);
+        }
+        if contador == 3{
+            array.insert(contador-1,_animalito);
+            println!("Datos de la tercera mascota introducidos correctamente");
+            println!(" {:?} ",array[contador-1])
+        }
+        if contador == 4{
+            array.insert(contador-1,_animalito);
+            println!("Datos de la cuarta mascota introducidos correctamente");
+            println!(" {:?} ",array[contador-1])
+        }
+        if contador == 5{
+            println!("Se llenaron las mascotas");
+            println!(".{:?}",array);
+            break;
+        }
+    }
+    return array;
+}
+fn nombre_persona() -> String{
+    println!("Ingrese su nombre");
+    let mut nombre_fn = String::new();
+    stdin().read_line(&mut nombre_fn).unwrap().to_string();
+    return nombre_fn;
+}
+fn edad_persona() -> u8{
+    println!("Ingrese su edad");
+    let mut edad_fn = String::new();
+    stdin().read_line(&mut edad_fn).unwrap().to_string();
+    let  edad_fn_int:u8 = edad_fn.trim().parse().unwrap();
+    return edad_fn_int;
+}
+fn rut_persona() -> String{
+
+    println!("Ingrese su rut");
+    let mut rut_fn = String::new();
+    stdin().read_line(&mut rut_fn).unwrap().to_string();
+    return rut_fn;
+}
+fn open_file_to_append(p: &Path) -> File{
+
+    let mut binding = OpenOptions::new();
+    let binding = binding.append(true);
+    let file = match binding.open(p){
+        Err(_why) => panic!("No se puede abrir el archivo"),
+        Ok(file) => file,
+    };
+
+    //add_new_content(&file);
+
+    return file
+
+}
+fn persona(p:&Path){
+    let nombre_struct = nombre_persona();
+    let edad_struct = edad_persona();
+    let rut_struct = rut_persona();
+    let mascota_struct = animal();
+    let  persona_struct = Persona{
+                                    nombre: nombre_struct,
+                                    edad: edad_struct,
+                                    rut: rut_struct,
+                                    mascota: mascota_struct,
+    };
+    let _tmp = format!("{} : {} : {} : {:?} ", persona_struct.nombre,persona_struct.edad,persona_struct.rut,persona_struct.mascota);
+    let mut _file = open_file_to_append(p).write_all(_tmp.as_bytes());
+
+}
+fn read_file(mut f: &File){
+    let mut text = String::new();
+    f.read_to_string(&mut text).unwrap();
+    println!("{}", &text);
+}
+fn create_blank_file(p: &Path){
+    let _file = File::create(p).expect("El archivo no pudo crearse");
+    println!("El archivo fue creado");
+
+}
+fn open_file_to_read(p: &Path){
+    //Si el archivo existe...
+    if Path::new(p).exists(){
+        //Abrir el archivo.
+        let file = match File::open(&p){
+            //Si no se puede abrir envía un mensaje.
+            Err(_why) => panic!("El archivo no se puede abrir..."),
+            //Si se puede abrir, entrega el archivo.
+            Ok(file) => file,
+        };
+        //Utiliza la función de leer el archivo.
+        read_file(&file)
+
+        //Si no existe el archivo..
+    } else {
+
+        //Crea uno en blanco.
+        create_blank_file(p);
+    }
+}
+fn main(){
+    let path =  Path::new("registro.txt");
+    open_file_to_read(path);
+    let _file = open_file_to_read(path);
+    animal();
+    persona(path);
+}
