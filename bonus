@@ -70,6 +70,7 @@ fn animal() -> ArrayVec::<[Mascota; 5]>{
             println!("{:?}",array[contador-1]);
         }
         //las estructuras no tienen como copiarse, es el error que me arroja y el que no supe solucionar.
+        // es es lo único que falla, la introducción de datos y que se añadan funcionan.
         if contador == 2{
             array.insert(contador-1,_animalito);
             println!(" Datos de la segunda mascota introducidos correctamente");
