@@ -1,0 +1,523 @@
+use std::fs::File;
+use std::io::stdin;
+use std::path::Path;
+use std::io::Read;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::fs;
+
+
+//Estructura utilizada para ingresar los datos al archivo de texto.
+#[derive(Default)]
+struct Inventario{
+    codigo: String,
+    nombre: String,
+    droga: String,
+    precio: String,
+    laboratorio: String,
+}
+
+//Función que lee el archivo.
+fn read_file(mut f: &File){
+    let mut text = String::new();
+    f.read_to_string(&mut text).unwrap();
+    println!("{}", &text);
+}
+
+//Función que crea un archivo de texto en blanco.
+fn create_blank_file(p: &Path){
+    let _file = File::create(p).expect("El archivo no pudo crearse");
+    println!("El archivo fue creado");
+
+}
+
+/*fn add_new_content(mut f: &File){
+    f.write_all(b"");
+}
+*/
+fn open_file_to_write(p: &Path) -> File{
+
+    let mut binding = OpenOptions::new();
+    let binding = binding.write(true);
+    let file = match binding.open(p){
+        Err(_why) => panic!("No se puede abrir el archivo"),
+        Ok(file) => file,
+    };
+
+    //add_new_content(&file);
+
+    return file
+
+}
+//Funcion usada para abrir el archivo.
+fn open_file_to_append(p: &Path) -> File{
+
+    let mut binding = OpenOptions::new();
+    let binding = binding.append(true);
+    let file = match binding.open(p){
+        Err(_why) => panic!("No se puede abrir el archivo"),
+        Ok(file) => file,
+    };
+
+    //add_new_content(&file);
+
+    return file
+
+}
+
+//Función que permite ingresar código del medicamento que luego se agregará al archivo de texto.
+fn codigo_medicamento() -> String{
+    println!("Código:");
+    let mut codigo_funcion = String::new();
+    stdin().read_line(&mut codigo_funcion).unwrap().to_string();
+    return codigo_funcion;
+}
+
+//Función que permite ingresar el nombre del medicamento que luego se agregará al archivo de texto.
+fn nombre_medicamento() -> String{
+    println!("Nombre de fantasía:");
+    let mut nombre_funcion = String::new();
+    stdin().read_line(&mut nombre_funcion).unwrap().to_string();
+    return nombre_funcion;
+}
+
+//Función que permite ingresar la droga principal del medicamento que luego se agregará al archivo de texto.
+fn droga_medicamento() -> String{
+    println!("Droga principal:");
+    let mut droga_funcion = String::new();
+    stdin().read_line(&mut droga_funcion).unwrap().to_string();
+    return droga_funcion;
+}
+
+//Función que permite ingresar el precio del medicamento que luego se agregará al archivo de texto.
+fn precio_medicamento() -> String{
+    println!("Precio:");
+    let mut precio_funcion = String::new();
+    stdin().read_line(&mut precio_funcion).unwrap().to_string();
+    precio_funcion = format!("${}", precio_funcion);
+    return precio_funcion;
+}
+
+//Función que permite ingresar el laboratorio al que pertenece el medicamento que luego se agregará al archivo de texto.
+fn lab_medicamento()  -> String{
+    println!("Laboratorio:");
+    let mut lab_funcion = String::new();
+    stdin().read_line(&mut lab_funcion).unwrap().to_string();
+    lab_funcion = format!("{}", lab_funcion);
+    return lab_funcion;
+}
+
+//Función que permite agregar nuevos medicamentos al archivo de texto.
+fn datos(p: &Path){
+    loop{
+        let codigo_loop = codigo_medicamento();
+        let nombre_loop = nombre_medicamento();
+        let droga_loop = droga_medicamento();
+        let precio_loop = precio_medicamento();
+        let lab_loop = lab_medicamento();
+
+        //Todos los datos ingresados se agregaran usando la estructura.
+        let mut _inventario_completo = Inventario{codigo: codigo_loop,
+                                                                nombre: nombre_loop,
+                                                                droga: droga_loop,
+                                                                precio: precio_loop,
+                                                                laboratorio: lab_loop};
+    
+        //Se guardan en una variable con un formato para ingresar al archivo de texto.
+        let temp = format!("{} : {} : {} : {} : {}", _inventario_completo.codigo.trim(),
+                                                    _inventario_completo.nombre.trim(),
+                                                    _inventario_completo.droga.trim(),
+                                                    _inventario_completo.precio.trim(),
+                                                    _inventario_completo.laboratorio);
+    
+        //Los datos son ingresados al archivo de texto.
+        let mut _file = open_file_to_append(p).write_all(temp.as_bytes());
+
+        //Permite volver a ingresar otro medicamento.
+        println!("¿Desea agregar otromedicamento? Solo respuesta si o no.");
+        let mut continuar = String::new();
+        stdin().read_line(&mut continuar).unwrap().to_string();
+        if continuar.trim().to_uppercase() == "NO"{
+            break;
+        } else if continuar.trim().to_uppercase() == "SI"{
+            continue;
+        } else {
+            println!("Ha introducido un valor no válido, el programa se cerrará guardando los datos anteriormente introducidos");
+            break;
+        }
+    }
+}
+
+//Funcion que permite encontrar el precio de un medicamento
+fn consultar_precio(){
+    
+    //Permite leer el archivo para que sea utilizado para buscar el precio del medicamento.
+    let texto = fs::read_to_string("inventario.txt").expect("No se pudo abrir el archivo.");
+    let mut contador = 0;
+    println!("Ingrese el nombre del medicamento del cual quiere saber el precio:");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap();
+
+    //Si el inventario está vacío, envía este aviso. 
+    if texto == ""{
+        println!("No se ha añadido ningún fármaco a este inventario aún, intente otra función.");
+    }else {
+        //Quitar \n de cada linea del texto.
+        for a in texto.split("\n"){
+
+            //Quitar los ':' para realizar la busqueda por posiciones.
+            for b in a.split(":"){
+
+                //Se evalúa si el fármaco consultado es el mismo.
+                if b.to_uppercase().trim() == consulta.to_uppercase().trim(){
+
+                    //Se hace este ciclo para agregar todos los resultados que coinciden.
+                    for _c in texto.split(""){
+
+                        contador += 1;
+
+                        if contador == 3{
+                            println!("{}", a);
+                            contador = 0;
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+//Función que permite encontrar todos los medicamentos que pertenecen al mismo laboratorio.
+fn mismo_laboratorio(){
+
+    let texto = fs::read_to_string("inventario.txt").expect("No se pudo abrir el archivo.");
+    let mut contador = 0;
+    println!("¿Qué laboratorio quiere buscar?");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap();
+    
+    //Si el archivo está vacío envía este aviso.
+    if texto == ""{
+        println!("No se ha añadido ningún fármaco a este texto, intente otra función.");
+    }else {
+        //Se quita el salto de linea
+        for a in texto.split("\n"){
+
+            //Se quitan los ':' para buscar las coincidencias pertinentes.
+            for b in a.split(":"){
+
+                //Si el dato coincide con lo que fue ingresado, aprueba esta sentencia.
+                if b.to_uppercase().trim() == consulta.to_uppercase().trim(){
+
+                    //Se va imprimiendo todas las coincidencias encontradas.
+                    for _c in texto.split(""){
+                        contador += 1;
+
+                        if contador == 2 {
+                            println!("{}", a);
+                            contador = 0;
+                            break;
+                        }   
+                    }
+
+                }
+            }
+        }  
+    }                  
+}   
+
+//Función que busca los medicamentos con la misma droga principal.
+fn misma_droga(){
+
+    let texto = fs::read_to_string("inventario.txt").expect("No se pudo abrir el archivo.");
+    let mut contador = 0;
+
+    println!("¿Qué droga principal busca?");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap();
+
+    //Permite enviar un mensaje si el archivo está vacío.
+    if texto == ""{
+        println!("No se ha añadido ningún fármaco a este texto, intente otra función.");
+    }else {
+        //Quita los saltos de línea.
+        for a in texto.split("\n"){
+
+            //Quita los dos puntos para realizar la búsqueda de coincidencias.
+            for b in a.split(":"){
+
+                //Imprime todas las coincidencias encontradas.
+                if b.to_uppercase().trim() == consulta.to_uppercase().trim(){
+                    for _c in texto.split(""){
+                        contador += 1;
+                        if contador == 5 {
+                            println!("{}", a);
+                            contador = 0;
+                            break;
+                        } 
+                          
+                    }
+                }
+            }
+        }  
+    }                  
+}
+
+fn modificar_elemento(p : &Path){
+    let texto = fs::read_to_string("inventario.txt").expect("No se pudo abrir el archivo.");
+    let mut contador = 0;
+
+    println!("¿Qué medicamento desea editar?");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap();
+
+    //Permite enviar un mensaje si el archivo está vacío.
+    if texto == ""{
+        println!("No se ha añadido ningún fármaco a este texto, intente otra función.");
+    }else {
+        //Quita los saltos de línea.
+        for a in texto.split("\n"){
+
+            //Quita los dos puntos para realizar la búsqueda de coincidencias.
+            for b in a.split(":"){
+
+                //Imprime todas las coincidencias encontradas.
+                if b.to_uppercase().trim() == consulta.to_uppercase().trim(){
+                    for _c in texto.split(""){
+                        contador += 1;
+                        if contador == 2 {
+                            println!("{}", a);
+                            contador = 0;
+                            break;
+                        }
+                        
+                    }              
+                }
+            }
+
+        }
+
+        println!("Ingrese el código del medicamento que desea editar:");
+        let mut cod_consulta = String::new();  
+        stdin().read_line(&mut cod_consulta).unwrap();
+        let mut variacion = String::new();
+        let mut cambio = String::new();
+        //d es la línea completa
+        for d in texto.split("\n"){
+            
+            for e in d.split(":"){
+                if e.to_uppercase().trim() == cod_consulta.to_uppercase().trim(){
+                    println!("¿Qué elemento desea modificar?");
+                    stdin().read_line(&mut variacion).unwrap();
+                    let variacion_help = variacion.trim();
+                    let mut _ayuda = match variacion_help.to_string().to_uppercase().as_str(){
+                        "CÓDIGO" | "CODIGO" => "1",
+                        "NOMBRE" => "No puede ser modificado el nombre.",
+                        "DROGA " => "3",
+                        "PRECIO" => "4",
+                        "LABORATORIO" => "5",
+                        _ => "Dato ingresado incorrecto.",
+                    };
+                    if _ayuda != "No puede ser modificado el nombre."{
+                        println!("Ingrese cambio:");
+                        stdin().read_line(&mut cambio).unwrap();
+                    }else if _ayuda == "No puede ser modificado el nombre."{
+                        println!("{}", _ayuda);
+                    }
+                    let mut contador = 0;
+                    let mut array = Vec::new();
+                    for _f in d.split(":"){
+                        array.push(_f.trim());
+                        contador += 1;
+                        if _ayuda == "1" && contador == 1{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        };
+                        
+                        if _ayuda == "3" && contador == 3{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        };
+                                
+                        if _ayuda == "4" && contador == 4{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        }
+                        if _ayuda == "5" && contador == 5{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        }
+                        println!("{:?}",array);
+                        //let push = format!("{} : {} : {} : {} : {}",array[0],array[1],array[2],array[3],array[4]);
+                        //println!("{}",push);
+                        //let mut _file = open_file_to_append(p).write_all(push.as_bytes());
+                    }
+                    let push = format!("{} : {} :{} : {} : {} \n ",array[0],array[1],array[2],array[3],array[4].trim());
+                    println!("{}",push);
+                    let mut _file = open_file_to_write(p).write_all(push.as_bytes());
+                };
+            }
+                
+        }  
+    }
+}
+   // Función para eliminar elemento
+   //Profe no entiendo que sucede, no entiendo por qué no borra si es similar a la funcion de editar un elemento,solo que el edit preestablecido es un ""             
+fn eliminar_elemento(p : &Path){
+    let texto = fs::read_to_string("inventario.txt").expect("No se pudo abrir el archivo.");
+    let mut contador = 0;
+
+    println!("¿Qué medicamento desea editar?");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap();
+
+    //Permite enviar un mensaje si el archivo está vacío.
+    if texto == ""{
+        println!("No se ha añadido ningún fármaco a este texto, intente otra función.");
+    }else {
+        //Quita los saltos de línea.
+        for a in texto.split("\n"){
+
+            //Quita los dos puntos para realizar la búsqueda de coincidencias.
+            for b in a.split(":"){
+
+                //Imprime todas las coincidencias encontradas.
+                if b.to_uppercase().trim() == consulta.to_uppercase().trim(){
+                    for _c in texto.split(""){
+                        contador += 1;
+                        if contador == 2 {
+                            println!("{}", a);
+                            contador = 0;
+                            break;
+                        }
+                        
+                    }              
+                }
+            }
+
+        }
+
+        println!("Ingrese el código del medicamento que desea editar:");
+        let mut cod_consulta = String::new();  
+        stdin().read_line(&mut cod_consulta).unwrap();
+        let cambio = " ".to_string();
+        //d es la línea completa
+        for d in texto.split("\n"){
+            
+            for e in d.split(":"){
+                if e.to_uppercase().trim() == cod_consulta.to_uppercase().trim(){
+                    
+                    let mut contador = 0;
+                    let mut array = Vec::new();
+                    for _f in d.split(":"){
+                        array.push(_f.trim());
+                        contador += 1;
+                        if contador == 1{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        };
+
+                        if contador == 2{
+                            array[contador-1] = &cambio.trim()
+                        }
+                        
+                        if contador == 3{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        };
+                                
+                        if contador == 4{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        }
+                        if contador == 5{
+                            //println!("{}", cambio);
+                            array[contador-1] = &cambio.trim();
+                            continue;
+                        }
+                        println!("hola");
+                        //let push = format!("{} : {} : {} : {} : {}",array[0],array[1],array[2],array[3],array[4]);
+                        //println!("{}",push);
+                        //let mut _file = open_file_to_append(p).write_all(push.as_bytes());
+                    }
+                    println!("{:?}",array);
+                    let push = format!("{}  {} {}  {}  {} \n ",array[0],array[1],array[2],array[3],array[4].trim());
+                    println!("{}",push);
+                    let mut _file = open_file_to_write(p).write_all(push.as_bytes());
+                };
+            }
+                
+        }  
+    }
+}
+//Función donde se ejecuta lo que desee realizar el usuario.
+fn menu_funcion(p: &Path){
+    loop {
+        println!("Seleccione lo que desea realizar:
+        0. Salir del programa.
+        1. Agregar un nuevo medicamento.
+        2. Consultar el precio de un medicamento.
+        3. Listar medicamentos de un mismo laboratorio.
+        4. Listar medicamentos según la misma droga principal.
+        5. Modificar un dato del medicamento.
+        6. Eliminar un registro del inventario.");
+        let mut menu = String::new();
+        stdin().read_line(&mut menu).unwrap();
+        let menu_help = menu.trim();
+        let mut _help = match menu_help{
+            "0" => break,
+            "1" => datos(p),
+            "2" => consultar_precio(),
+            "3" => mismo_laboratorio(),
+            "4" => misma_droga(),
+            "5" => modificar_elemento(p),
+            "6" => eliminar_elemento(p),
+            _ => println!("valor incorrecto,intente de nuevo"),
+        };
+    }
+}
+
+//Permite abrir el archivo para leerlo si es que existe.
+fn open_file_to_read(p: &Path){
+    //Si el archivo existe...
+    if Path::new(p).exists(){
+        //Abrir el archivo.
+        let file = match File::open(&p){
+            //Si no se puede abrir envía un mensaje.
+            Err(_why) => panic!("El archivo no se puede abrir..."),
+            //Si se puede abrir, entrega el archivo.
+            Ok(file) => file,
+        };
+        //Utiliza la función de leer el archivo.
+        read_file(&file)
+
+        //Si no existe el archivo..
+    } else {
+
+        //Crea uno en blanco.
+        create_blank_file(p);
+    }
+}
+
+fn main(){
+    //Crea el archivo si es que no existe.
+    let path = Path::new("inventario.txt");
+    //Mostrar todo lo sometido en el inventario.
+    println!("Todo lo que está en el inventario es:");
+    //Utiliza la función para abrir el archivo y leerlo.
+    open_file_to_read(path);
+    //Se abre el archivo para agregar datos.
+    let _file = open_file_to_append(path);
+    //Se ejecuta el menú del programa.
+    menu_funcion(path);
+    //add_new_content(&file)
+}
