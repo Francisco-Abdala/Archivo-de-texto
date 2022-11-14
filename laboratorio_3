@@ -5,7 +5,7 @@ use std::io::Read;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::fs;
-
+// Amanda Perez, Francisco Abdala
 
 //Estructura utilizada para ingresar los datos al archivo de texto.
 #[derive(Default)]
