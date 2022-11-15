@@ -28,21 +28,24 @@ fn nombre_mascota() -> String{
     println!("Introduza el nombre de la mascota");
     let mut nombre_animal_fn = String::new();
     stdin().read_line(&mut nombre_animal_fn).unwrap().to_string();
-    return nombre_animal_fn;
+    let nombre_trim = nombre_animal_fn.trim();
+    return nombre_trim.to_string();
 }
 
 fn tipo_mascota()-> String{
     println!("Introduzca el tipo de mascota");
     let mut tipo_animal_fn = String::new();
     stdin().read_line(&mut tipo_animal_fn).unwrap().to_string();
-    return tipo_animal_fn;
+    let tipo_trim = tipo_animal_fn.trim();
+    return tipo_trim.to_string();
 }
 
 fn color_mascota() -> String{
     println!("Introduzca el color de la mascota");
     let mut color_animal_fn = String::new();
     stdin().read_line(&mut color_animal_fn).unwrap().to_string();
-    return color_animal_fn;
+    let color_trim = color_animal_fn.trim();
+    return color_trim.to_string();
 }
 
 fn animal() -> ArrayVec::<[Mascota; 5]>{
@@ -57,35 +60,69 @@ fn animal() -> ArrayVec::<[Mascota; 5]>{
         let nombre_loop = nombre_mascota();
         let tipo_loop = tipo_mascota();
         let color_loop = color_mascota();
-        let mut _animalito =  Mascota{
+        let _animalito =  Mascota{
                                     nombre: nombre_loop,
                                     tipo: tipo_loop,
                                     color: color_loop,
         };
 
-        contador +=1;
+        contador =1;
         if contador == 1{
             array.insert(contador-1, _animalito);
             println!("Datos de la primera mascota introducidos correctamente");
             println!("{:?}",array[contador-1]);
         }
-        //las estructuras no tienen como copiarse, es el error que me arroja y el que no supe solucionar.
-        // es es lo único que falla, la introducción de datos y que se añadan funcionan.
+        let nombre_loop = nombre_mascota();
+        let tipo_loop = tipo_mascota();
+        let color_loop = color_mascota();
+        let _animalito =  Mascota{
+                                    nombre: nombre_loop,
+                                    tipo: tipo_loop,
+                                    color: color_loop,
+        };
+        contador = 2;
+        //ahora el otro problema es que la primera tirada de datos no la recibe en ninguna parte,pero la segunda la recibe y la imprime en un archivo de texto
         if contador == 2{
             array.insert(contador-1,_animalito);
             println!(" Datos de la segunda mascota introducidos correctamente");
             println!(" {:?} ",array[contador-1]);
-        }
+        }   let nombre_loop = nombre_mascota();
+        let tipo_loop = tipo_mascota();
+        let color_loop = color_mascota();
+        let _animalito =  Mascota{
+                                    nombre: nombre_loop,
+                                    tipo: tipo_loop,
+                                    color: color_loop,
+        };
+        contador = 3;
         if contador == 3{
             array.insert(contador-1,_animalito);
             println!("Datos de la tercera mascota introducidos correctamente");
             println!(" {:?} ",array[contador-1])
         }
+        let nombre_loop = nombre_mascota();
+        let tipo_loop = tipo_mascota();
+        let color_loop = color_mascota();
+        let _animalito =  Mascota{
+                                    nombre: nombre_loop,
+                                    tipo: tipo_loop,
+                                    color: color_loop,
+        };
+        contador = 4;
         if contador == 4{
             array.insert(contador-1,_animalito);
             println!("Datos de la cuarta mascota introducidos correctamente");
             println!(" {:?} ",array[contador-1])
         }
+        let nombre_loop = nombre_mascota();
+        let tipo_loop = tipo_mascota();
+        let color_loop = color_mascota();
+        let _animalito =  Mascota{
+                                    nombre: nombre_loop,
+                                    tipo: tipo_loop,
+                                    color: color_loop,
+        };
+        contador = 5;
         if contador == 5{
             println!("Se llenaron las mascotas");
             println!(".{:?}",array);
