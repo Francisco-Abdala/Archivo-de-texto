@@ -1,0 +1,504 @@
+//Francisco Abdala y Amanda Pérez
+use std::io::stdin;
+use rand::Rng;
+use std::fs::{File, self};
+use std::path::Path;
+use std::io::Read;
+use std::fs::OpenOptions;
+use std::io::Write;
+
+//Estructura para agregar la información sobre la persona.
+#[derive(Default)]
+struct Persona{
+    apodo: String,
+    elemento: String,
+}
+
+//Función utilizada para imprimir el archivo de texto que se ocupará.
+fn read_file(mut f: &File){
+    let mut text = String::new();
+    f.read_to_string(&mut text).unwrap();
+    println!("{}", &text);
+}
+
+//Función que crea el archivo en blanco si es que no existe.
+fn create_blank_file(p: &Path){
+    let _file = File::create(p).expect("El archivo no pudo crearse");
+    println!("El archivo fue creado");
+
+}
+
+//Se abre el archivo de texto para agregar la información.
+fn open_file_to_append(p: &Path) -> File{
+
+    let mut binding = OpenOptions::new();
+    let binding = binding.append(true);
+    let file = match binding.open(p){
+        Err(_why) => panic!("No se puede abrir el archivo"),
+        Ok(file) => file,
+    };
+
+    //add_new_content(&file);
+
+    return file
+
+}
+
+//Función utilizada para abrir y leer el archivo de texto.
+fn open_file_to_read(p: &Path){
+    if Path::new(p).exists(){
+        let file = match File::open(&p){
+            Err(_why) => panic!("El archivo no se puede abrir..."),
+            Ok(file) => file,
+        };
+        read_file(&file)
+    } else {
+        create_blank_file(p);
+    }
+}
+
+//Función que pide ingresar el apodo de cada jugador.
+fn pedir_apodo()-> String{
+    println!("Introduzca su apodo: ");
+    let mut nombre_fn = String::new();
+    stdin().read_line(&mut nombre_fn).unwrap();
+    let nombre_funcion = nombre_fn.trim();
+    return nombre_funcion.to_string();
+}
+
+//Función donde se agrega la información de los jugadores.
+fn jugadores(p: &Path) -> bool{
+    //Apodo y elemento del jugador 1.
+    let persona1 = Persona{apodo: pedir_apodo(),
+                                        elemento: "X".to_string(),
+
+    };
+
+    //Apodo y elemento del jugador 2.
+    let persona2 = Persona{apodo: pedir_apodo(),
+                                        elemento: "O".to_string(),
+    };
+
+    //Se elige al azar quien comienza mediante la función turnos.
+    let turno = turnos();
+
+    //Se verifica quien comienza la partida.
+    let ayuda = match turno{
+        1 => "Jugador 1 comienza.".to_string(),
+        2 => "Jugador 2 comienza.".to_string(),
+        _ => "".to_string(),
+    };
+
+    //Información de jugadores que será agregada al archivo de texto.
+    let help = format!("Jugador 1. {}: {} \nJugador 2. {}: {} \n{}\n",persona1.apodo,
+                                persona1.elemento, persona2.apodo, persona2.elemento, ayuda);
+    
+    //Se agrega la información de los jugadores al archivo de texto.
+    let mut _file = open_file_to_append(p).write_all(help.as_bytes());
+
+    //Se muestra en pantalla la información de cada jugador y qué jugador comienza.
+    println!("{}", help);
+    
+    //Booleanos para hacer el orden de turnos. 
+    if turno == 1{
+        return true;
+    }else{
+        return false;
+    }
+}
+
+//Función que elige de manera random qué jugador inicia la partida.
+fn turnos() -> i32{
+    let a = ["Jugador 1", "Jugador 2"];
+    let mut rng = rand::thread_rng();
+    let num = rng.gen_range(0..=1);
+    if a[num] == "Jugador 1"{
+        println!("Comienza el jugador 1.");
+        let turno = 1;
+        return turno;
+    } else{
+        println!("Comienza el jugador 2.");
+        let turno = 2;
+        return turno;
+    }
+}
+
+//Función donde se desarrolla el juego.
+fn tablero(p: &Path){
+    let mut revancha = String::new();
+    let help = "si";
+
+    //Ciclo para revisar si los jugadores desean una revancha.
+    while help == "si"{
+        //Cada vez que inicia una partida se vacía el array.
+        let mut array: [[&str;3];3] = [["";3];3];
+        //Dependiendo del valor retornado (True/False) es el orden en el que se va a jugar.
+        let turno = jugadores(p);
+        //Ciclo para que se vaya desarrollando el juego y se vaya repitiendo hasta que alguien gane o
+        //logren un empate.
+        loop{
+            //Si la función jugadores retorna True, significa que el jugador 1 comienza la partida. 
+            if turno == true{
+                
+                println!("   1    2    3");
+                let mut a = 0;
+                //Ciclo que permite mostrar el array como si fuera un tablero de juego.
+                for x in array{
+                    a += 1;
+                    println!("{}{:?}", a, x);
+                }
+                //Se pide ingresar la fila.
+                println!("Introduzca su fila para jugar:");
+                let mut fila_ingreso = String::new();
+                stdin().read_line(&mut fila_ingreso).unwrap().to_string();
+
+                //Se pide ingresar la columna.
+                println!("Introduzca su columna:");
+                let mut columna_ingreso = String::new();
+                stdin().read_line(&mut columna_ingreso).unwrap().to_string();
+
+                //Se transforman las filas a enteros para poder ingresar al array y modificarlo.
+                let fila = match fila_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se transforman las columnas ingreadas a enteros para poder ingresar al array y modificarlo.
+                let columna = match columna_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se verifica que el espacio esté vacío para agregar.
+                if array[fila][columna] == ""{
+                    array[fila][columna] = "X";
+                    
+                }else{
+                    println!("Espacio ocupado, pierde su turno");  
+                }
+                
+                //Verificación si el jugador gana.
+                if (array[0][0] == "X" && array[0][1] == "X" && array[0][2] == "X") || 
+                (array[1][0] == "X" && array[1][1] == "X" && array[1][2] == "X") ||
+                (array[2][0] == "X" && array[2][1] == "X" && array[2][2] == "X") || 
+                (array[0][0] == "X" && array[1][0] == "X" && array[2][0] == "X") ||
+                (array[0][1] == "X" && array[1][1] == "X" && array[2][1] == "X") ||
+                (array[0][2] == "X" && array[1][2] == "X" && array[2][2] == "X") ||
+                (array[0][0] == "X" && array[1][1] == "X" && array[2][2] == "X") ||
+                (array[0][2] == "X" && array[1][1] == "X" && array[2][0] == "X"){
+                    println!("\nGana jugador 1.\n");
+                    for x in array{
+                        println!("{:?}", x);
+                    };
+                    break;
+                }
+            
+                //Comienza el turno del otro jugador.
+                println!("   1    2    3");
+                let mut a = 0;
+                //Ciclo que permite mostrar el array como si fuera un tablero de juego.
+                for x in array{
+                    a += 1;
+                    println!("{}{:?}", a, x);
+                }
+                //Se pide ingresar la fila.
+                println!("Introduzca su fila para jugar:");
+                let mut fila_ingreso = String::new();
+                stdin().read_line(&mut fila_ingreso).unwrap().to_string();
+
+                //Se pide ingresar la columna.
+                println!("Introduzca su columna:");
+                let mut columna_ingreso = String::new();
+                stdin().read_line(&mut columna_ingreso).unwrap().to_string();
+
+                //Se transforman las filas a enteros para poder ingresar al array y modificarlo.
+                let fila = match fila_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se transforman las columnas ingreadas a enteros para poder ingresar al array y modificarlo.
+                let columna = match columna_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se verifica que el espacio esté vacío para agregar.
+                if array[fila][columna] == ""{
+                    array[fila][columna] = "O";
+                    
+                }else{
+                    println!("Espacio ocupado, pierde su turno");  
+                }
+                
+                //Verificación si el jugador gana.
+                if (array[0][0] == "O" && array[0][1] == "O" && array[0][2] == "O") || 
+                (array[1][0] == "O" && array[1][1] == "O" && array[1][2] == "O") ||
+                (array[2][0] == "O" && array[2][1] == "O" && array[2][2] == "O") || 
+                (array[0][0] == "O" && array[1][0] == "O" && array[2][0] == "O") ||
+                (array[0][1] == "O" && array[1][1] == "O" && array[2][1] == "O") ||
+                (array[0][2] == "O" && array[1][2] == "O" && array[2][2] == "O") ||
+                (array[0][0] == "O" && array[1][1] == "O" && array[2][2] == "O") ||
+                (array[0][2] == "O" && array[1][1] == "O" && array[2][0] == "O"){
+                    println!("\nGana jugador 2.\n");
+                    for x in array{
+                        println!("{:?}", x);
+                    }
+                    break;
+                }
+                
+                //Se verifica empate en la partida.
+                let mut contador = 9;
+                for x in array{
+                    for y in x{
+                        if y != ""{
+                            contador -= 1;
+                        }
+                    }
+                } 
+                if contador == 0{
+                    println!("\nEmpate.");
+                    for x in array{
+                        println!("{:?}", x);
+                    }
+                    break;
+                }
+            
+                
+            }
+            //Si el valor retornado de la función es False quiere decir que el jugador 2 comienza en la partida.
+            if turno == false{
+                println!("   1    2    3");
+                let mut a = 0;
+                //Ciclo que permite mostrar el array como si fuera un tablero de juego.
+                for x in array{
+                    a += 1;
+                    println!("{}{:?}", a, x);
+                }
+                //Se pide ingresar la fila.
+                println!("Introduzca su fila para jugar:");
+                let mut fila_ingreso = String::new();
+                stdin().read_line(&mut fila_ingreso).unwrap().to_string();
+
+                //Se pide ingresar la columna.
+                println!("Introduzca su columna:");
+                let mut columna_ingreso = String::new();
+                stdin().read_line(&mut columna_ingreso).unwrap().to_string();
+
+                //Se transforman las filas a enteros para poder ingresar al array y modificarlo.
+                let fila = match fila_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se transforman las columnas ingreadas a enteros para poder ingresar al array y modificarlo.
+                let columna = match columna_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se verifica que el espacio esté vacío para agregar.
+                if array[fila][columna] == ""{
+                    array[fila][columna] = "O";
+                    
+                }else{
+                    println!("Espacio ocupado, pierde su turno");  
+                }
+                
+                //Verificación si el jugador gana.
+                if (array[0][0] == "O" && array[0][1] == "O" && array[0][2] == "O") || 
+                (array[1][0] == "O" && array[1][1] == "O" && array[1][2] == "O") ||
+                (array[2][0] == "O" && array[2][1] == "O" && array[2][2] == "O") || 
+                (array[0][0] == "O" && array[1][0] == "O" && array[2][0] == "O") ||
+                (array[0][1] == "O" && array[1][1] == "O" && array[2][1] == "O") ||
+                (array[0][2] == "O" && array[1][2] == "O" && array[2][2] == "O") ||
+                (array[0][0] == "O" && array[1][1] == "O" && array[2][2] == "O") ||
+                (array[0][2] == "O" && array[1][1] == "O" && array[2][0] == "O"){
+                    println!("\nGana jugador 2.\n");
+                    for x in array{
+                        println!("{:?}", x);
+                    }
+                    break;
+                }
+
+                //Comienza el turno del otro jugador.
+                println!("   1    2    3");
+                let mut a = 0;
+                //Ciclo que permite mostrar el array como si fuera un tablero de juego.
+                for x in array{
+                    a += 1;
+                    println!("{}{:?}", a, x);
+                }
+                //Se pide ingresar la fila.
+                println!("Introduzca su fila para jugar:");
+                let mut fila_ingreso = String::new();
+                stdin().read_line(&mut fila_ingreso).unwrap().to_string();
+
+                //Se pide ingresar la columna.
+                println!("Introduzca su columna:");
+                let mut columna_ingreso = String::new();
+                stdin().read_line(&mut columna_ingreso).unwrap().to_string();
+
+                //Se transforman las filas a enteros para poder ingresar al array y modificarlo.
+                let fila = match fila_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se transforman las columnas ingreadas a enteros para poder ingresar al array y modificarlo.
+                let columna = match columna_ingreso.trim(){
+                    "1" => 0,
+                    "2" => 1,
+                    "3" => 2,
+                    _ => panic!("Te saliste del rango o carácter inválido"),
+                };
+                //Se verifica que el espacio esté vacío para agregar.
+                if array[fila][columna] == ""{
+                    array[fila][columna] = "X";
+                    
+                }else{
+                    println!("Espacio ocupado, pierde su turno");  
+                }
+                
+                //Verificación si el jugador gana.
+                if (array[0][0] == "X" && array[0][1] == "X" && array[0][2] == "X") || 
+                (array[1][0] == "X" && array[1][1] == "X" && array[1][2] == "X") ||
+                (array[2][0] == "X" && array[2][1] == "X" && array[2][2] == "X") || 
+                (array[0][0] == "X" && array[1][0] == "X" && array[2][0] == "X") ||
+                (array[0][1] == "X" && array[1][1] == "X" && array[2][1] == "X") ||
+                (array[0][2] == "X" && array[1][2] == "X" && array[2][2] == "X") ||
+                (array[0][0] == "X" && array[1][1] == "X" && array[2][2] == "X") ||
+                (array[0][2] == "X" && array[1][1] == "X" && array[2][0] == "X"){
+                    println!("\nGana jugador 1.\n");
+                    for x in array{
+                        println!("{:?}", x);
+                    };
+                    break;
+                }
+                
+                //Se verifica empate en la partida.
+                let mut contador = 9;
+                for x in array{
+                    for y in x{
+                        if y != ""{
+                            contador -= 1;
+                        }
+                    }
+                } 
+                if contador == 0{
+                    println!("\nEmpate.");
+                    for x in array{
+                        println!("{:?}", x);
+                    }
+                    break;
+                }
+                
+            
+            }
+        }
+
+        let juego = "Juego".to_string();
+        //Se agrega la palabra juego que luego irá unida al resultado final del juego.
+        let help = format!("{};", juego);
+        let mut _file= open_file_to_append(p).write_all(help.as_bytes());
+        
+        //Se agrega el tablero por filas al archivo de texto.
+        let mut count = 0;
+        for x in array{
+            count += 1;
+            let ayuda = format!("{:?};", x);
+            let mut _file= open_file_to_append(p).write_all(ayuda.as_bytes());
+            if count == 3{
+                let help = "\n";
+                let mut _file = open_file_to_append(p).write_all(help.as_bytes());
+            }
+        }
+
+        //Se ve si los jugadores quieren jugar nuevamente. 
+        println!("¿Quieren volver a jugar? Elija:\n1. Si\n2. No\n");
+        stdin().read_line(&mut revancha).unwrap();
+        let _help = match revancha.trim(){
+            "1" => "si",
+            "2" => break,
+            _ => panic!("Dato ingresado no válido.")
+                        
+        };
+
+
+
+    }
+}
+
+//Función que permite buscar y mostrar el juego que se solicite.
+fn identificar_juego(){
+    //Texto transformado a string para recorrerlo.
+    let file = fs::read_to_string("Juego.txt").expect("No se pudo abrir el archivo");
+    if file == ""{
+        println!("No se ha añadido nada,intente luego");
+    } else{
+         //Se pide ingresar el número de juego que se va a mostrar.
+    println!("Ingrese el número del juego que busca:");
+    let mut consulta = String::new();
+    stdin().read_line(&mut consulta).unwrap().to_string();
+    let consulta_limpia = consulta.trim();
+    let consulta_int = consulta_limpia.parse::<i32>().unwrap();
+    let mut contador = 0;
+    let mut count = 0;
+
+    //Ciclos para encontrar el juego que se va a mostrar y así imprimirlo en la pantalla.
+    for x in file.split("\n"){
+        for y in x.split(";"){
+            if y == "Juego"{
+                contador += 1;
+                if contador == consulta_int{
+                    for a in x.split(";"){
+                        if count > 0{
+                            println!("{}", a);
+                        } 
+                        count += 1;
+                    }
+                    count = 0;
+                } 
+            }
+
+        }
+    } if contador != consulta_int{
+        println!("No hubo coincidencias");
+    }
+}
+
+    }
+   
+
+//Función para el menú del juego.
+fn menu(p: &Path){
+    loop{
+    println!("Ingrese lo que desea hacer:
+    1. Jugar.
+    2. Buscar un juego.
+    0. Salir");
+    let mut menu = String::new();
+    stdin().read_line(&mut menu).unwrap().to_string();
+    let _eleccion = match menu.trim() {
+        "1" => tablero(p),
+        "2" => identificar_juego(),
+        "0" => break,
+        _ => panic!("Ingreso de carácter inválido.")
+    };
+}
+}
+
+//Se ejecutan las funciones correspondientes.
+fn main() {
+    let path = Path::new("Juego.txt");
+    open_file_to_read(path);
+    //let _file = open_file_to_append(path);
+    menu(path);
+}
